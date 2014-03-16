@@ -5,6 +5,9 @@
 #ifndef _BPMEMORY_H
 #define _BPMEMORY_H
 
+#include "CommonTypes.h"
+#include "BitField.h"
+
 #pragma pack(4)
 
 #define BPMEM_GENMODE          0x00
@@ -263,41 +266,37 @@ struct TevStageCombiner
 {
 	union ColorCombiner
 	{
-		struct  //abc=8bit,d=10bit
-		{
-			u32 d : 4; // TEVSELCC_X
-			u32 c : 4; // TEVSELCC_X
-			u32 b : 4; // TEVSELCC_X
-			u32 a : 4; // TEVSELCC_X
+		BitField<0,4> d;
+		BitField<4,4> c;
+		BitField<8,4> b;
+		BitField<12,4> a;
 
-			u32 bias : 2;
-			u32 op : 1;
-			u32 clamp : 1;
+		BitField<16,2> bias;
+		BitField<18,1> op;
+		BitField<19,1> clamp;
 
-			u32 shift : 2;
-			u32 dest : 2;  //1,2,3
+		BitField<20,2> shift;
+		BitField<22,2> dest;
 
-		};
 		u32 hex;
 	};
 	union AlphaCombiner
 	{
-		struct 
-		{
-			u32 rswap : 2;
-			u32 tswap : 2;
-			u32 d : 3; // TEVSELCA_
-			u32 c : 3; // TEVSELCA_
-			u32 b : 3; // TEVSELCA_
-			u32 a : 3; // TEVSELCA_
+		BitField<0,2> rswap;
+		BitField<2,2> tswap;
 
-			u32 bias : 2; //GXTevBias
-			u32 op : 1;
-			u32 clamp : 1;
+		BitField<4,3> d;
+		BitField<7,3> c;
+		BitField<10,3> b;
+		BitField<13,3> a;
 
-			u32 shift : 2;
-			u32 dest : 2;  //1,2,3
-		};
+		BitField<16,2> bias;
+		BitField<18,1> op;
+		BitField<19,1> clamp;
+
+		BitField<20,2> shift;
+		BitField<22,2> dest;
+
 		u32 hex;
 	};
 
@@ -564,16 +563,14 @@ struct FourTexUnits
 
 union GenMode
 {
-	struct 
-	{
-		u32 numtexgens : 4;    //     0xF
-		u32 numcolchans : 5;   //   0x1E0
-		u32 ms_en : 1;         //   0x200
-		u32 numtevstages : 4;  //  0x3C00
-		u32 cullmode : 2;      //  0xC000
-		u32 numindstages : 3;  // 0x30000
-		u32 zfreeze : 5;       //0x3C0000
-	};
+	BitField<0,4> numtexgens;
+	BitField<4,5> numcolchans;
+	BitField<9,1> ms_en;
+	BitField<10,4> numtexstages;
+	BitField<14,2> cullmode;
+	BitField<16,3> numindstages;
+	BitField<19,5> zfreeze;
+
 	u32 hex;
 };
 
@@ -594,20 +591,14 @@ union LPSize
 
 union X12Y12
 {
-	struct 
-	{
-		u32 y : 12;
-		u32 x : 12;
-	};
+	BitField<0,12> y;
+	BitField<12,12> x;
 	u32 hex;
 };
 union X10Y10
 {
-	struct 
-	{
-		u32 x : 10;
-		u32 y : 10;
-	};
+	BitField<0,10> x;
+	BitField<10,10> y;
 	u32 hex;
 };
 
@@ -627,30 +618,24 @@ union X10Y10
 
 union BlendMode
 {
-	struct 
-	{
-		u32 blendenable   : 1;
-		u32 logicopenable : 1;
-		u32 dither : 1;
-		u32 colorupdate : 1;
-		u32 alphaupdate : 1;
-		u32 dstfactor : 3; //BLEND_ONE, BLEND_INV_SRc etc
-		u32 srcfactor : 3;
-		u32 subtract : 1;
-		u32 logicmode : 4;
-	};
+	BitField<0,1> blendenable;
+	BitField<1,1> logicopenable;
+	BitField<2,1> dither;
+	BitField<3,1> colorupdate;
+	BitField<4,1> alphaupdate;
+	BitField<5,3> dstfactor; // GX_BL_ONE, GX_BL_INVSRCCLR, etc
+	BitField<8,3> srcfactor;
+	BitField<11,1> subtract;
+	BitField<12,4> logicmode;
 	u32 hex;
 };
 
 
 union FogParam0
 {
-	struct 
-	{
-		u32 mantissa : 11;
-		u32 exponent : 8;
-		u32 sign : 1;
-	};
+	BitField<0,11> mantissa;
+	BitField<11,8> exponent;
+	BitField<19,1> sign;
 
 	float GetA()
 	{
@@ -664,14 +649,11 @@ union FogParam0
 
 union FogParam3
 {
-	struct
-	{
-		u32 c_mant : 11;
-		u32 c_exp : 8;
-		u32 c_sign : 1;
-		u32 proj : 1; // 0 - perspective, 1 - orthographic
-		u32 fsel : 3; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
-	};
+	BitField<0,11> c_mant;
+	BitField<11,8> c_exp;
+	BitField<19,1> c_sign;
+	BitField<20,1> proj; // 0 - perspective, 1 - orthographic
+	BitField<21,3> fsel; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
 
 	// amount to subtract from eyespacez after range adjustment
 	float GetC()
@@ -686,12 +668,8 @@ union FogParam3
 
 union FogRangeKElement
 {
-	struct
-	{
-		u32 HI : 12;
-		u32 LO : 12;
-		u32 regid : 8;
-	};
+	BitField<0,12> HI;
+	BitField<12,12> LO;
 
 	// TODO: Which scaling coefficient should we use here? This is just a guess!
 	float GetValue(int i) { return (i ? HI : LO) / 256.f; }
@@ -702,13 +680,8 @@ struct FogRangeParams
 {
 	union RangeBase
 	{
-		struct
-		{
-			u32 Center : 10; // viewport center + 342
-			u32 Enabled : 1;
-			u32 unused : 13;
-			u32 regid : 8;
-		};
+		BitField<0,10> Center;
+		BitField<10,1> Enabled;
 		u32 hex;
 	};
 	RangeBase Base;
@@ -718,18 +691,15 @@ struct FogRangeParams
 struct FogParams
 {
 	FogParam0 a;
-	u32 b_magnitude;
-	u32 b_shift; // b's exp + 1?
+	u32 b_magnitude_hex;
+	u32 b_shift_hex; // b's exp + 1?
 	FogParam3 c_proj_fsel;
 
 	union FogColor
 	{
-		struct
-		{
-			u32 b  : 8;
-			u32 g  : 8;
-			u32 r  : 8;
-		};
+		BitField<0,8> b;
+		BitField<8,8> g;
+		BitField<16,8> r;
 		u32 hex;
 	};
 
@@ -738,12 +708,9 @@ struct FogParams
 
 union ZMode
 {
-	struct
-	{
-		u32 testenable		: 1;
-		u32 func			: 3;
-		u32 updateenable	: 1;  //size?
-	};
+	BitField<0,1> testenable;
+	BitField<1,3> func;
+	BitField<4,1> updateenable;
 	u32 hex;
 };
 
@@ -798,14 +765,10 @@ union FieldMask
 
 union PE_CONTROL
 {
-	struct
-	{
-		u32 pixel_format : 3;	// PIXELFMT_X
-		u32 zformat : 3;		// Z Compression for 16bit Z format
-		u32 early_ztest : 1;	// 1: before tex stage
-		u32 unused : 17;
-		u32 rid : 8;
-	};
+	BitField<0,3> pixel_format; // PIXELFMT_X
+	BitField<3,3> zformat; // Z compression for 16 bit Z format
+	BitField<6,1> early_ztest; // 1: before tex stage
+
 	u32 hex;
 };
 
@@ -814,7 +777,7 @@ union PE_CONTROL
 
 union TCInfo
 {
-	struct 
+	struct
 	{
 		u32 scale_minus_1 : 16;
 		u32 range_bias : 1;
@@ -868,14 +831,11 @@ union TevKSel
 
 union AlphaTest
 {
-	struct
-	{
-		u32 ref0 : 8;
-		u32 ref1 : 8;
-		u32 comp0 : 3;
-		u32 comp1 : 3;
-		u32 logic : 2;
-	};
+	BitField<0,8> ref0;
+	BitField<8,8> ref1;
+	BitField<16,3> comp0;
+	BitField<19,3> comp1;
+	BitField<22,2> logic;
 	u32 hex;
 
 	enum TEST_RESULT
@@ -891,40 +851,18 @@ union AlphaTest
 union UPE_Copy
 {
 	u32 Hex;
-	struct
-	{
-#if BYTE_ORDER == BIG_ENDIAN
-		u32 unused : 15;
-		u32	auto_conv			: 1; // if 0 automatic color conversion by texture format and pixel type
-		u32 intensity_fmt		: 1; // if set, is an intensity format (I4,I8,IA4,IA8)
-		u32 copy_to_xfb			: 1;
-		u32 frame_to_field		: 2; // 0 progressive ; 1 is reserved ; 2 = interlaced (even lines) ; 3 = interlaced 1 (odd lines)
-		u32 clear				: 1;
-		u32 scale_invert		: 1; // if set vertical scaling is on
-		u32 half_scale			: 1; // "mipmap" filter... 0 = no filter (scale 1:1) ; 1 = box filter (scale 2:1)
-		u32 gamma				: 2; // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 3 is reserved
-		u32 target_pixel_format	: 4; // realformat is (fmt/2)+((fmt&1)*8).... for some reason the msb is the lsb (pattern: cycling right shift)
-		u32 yuv					: 1; // if set, color conversion from RGB to YUV
-		u32 clamp1				: 1; // if set clamp bottom
-		u32 clamp0				: 1; // if set clamp top
-#elif BYTE_ORDER == LITTLE_ENDIAN
-		u32 clamp0              : 1; // if set clamp top
-		u32 clamp1              : 1; // if set clamp bottom
-		u32 yuv                 : 1; // if set, color conversion from RGB to YUV
-		u32 target_pixel_format : 4; // realformat is (fmt/2)+((fmt&1)*8).... for some reason the msb is the lsb (pattern: cycling right shift)
-		u32 gamma               : 2; // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 3 is reserved
-		u32 half_scale          : 1; // "mipmap" filter... 0 = no filter (scale 1:1) ; 1 = box filter (scale 2:1)
-		u32 scale_invert        : 1; // if set vertical scaling is on
-		u32 clear               : 1;
-		u32 frame_to_field      : 2; // 0 progressive ; 1 is reserved ; 2 = interlaced (even lines) ; 3 = interlaced 1 (odd lines)
-		u32 copy_to_xfb         : 1;
-		u32 intensity_fmt       : 1; // if set, is an intensity format (I4,I8,IA4,IA8)
-		u32 auto_conv           : 1; // if 0 automatic color conversion by texture format and pixel type
-		u32 unused : 15;
-#else
-#error endianness undefined
-#endif
-	};
+	BitField<0,1> clamp0;
+	BitField<1,1> clamp1;
+	BitField<2,1> yuv;
+	BitField<3,4> target_pixel_format;
+	BitField<7,2> gamma;
+	BitField<9,1> half_scale;
+	BitField<10,1> scale_invert;
+	BitField<11,1> clear;
+	BitField<12,2> frame_to_field;
+	BitField<14,1> copy_to_xfb;
+	BitField<15,1> intensity_fmt;
+	BitField<16,1> auto_conv;
 	u32 tp_realFormat() { 
 		return target_pixel_format / 2 + (target_pixel_format & 1) * 8;
 	}
